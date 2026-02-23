@@ -127,6 +127,40 @@ def run7():
     # wait(200)
     rob.pid(45, 525)
 
+def run4():
+    rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
+    hub.speaker.volume(20)
+    hub.speaker.beep(600, 80)  # Low C
+    wait(100)
+    hub.speaker.beep(800, 80)  # Mid E
+    wait(10)
+    hub.speaker.beep(1100, 120) # High G
+    wait(10)
+    hub.light.on(Color.WHITE)
+    hub.display.animate(["2", "6", "1"])
+    wait(400)
+
+
+    rob.pid(15, 525)
+    wait(300)
+    rob.turn(90, 125)
+    wait(300)
+    rob.pid(65, 525)
+    wait(300)
+    rob.turnWhileShell(90, -90, 420, 125)
+    wait(300)
+    rob.pid(5, -525)
+    wait(300)
+    rob.turn(10, 125)
+    wait(300)
+    rob.pid(15, 525)
+    wait(300)
+    rob.turn(50, 125)
+    wait(300)
+    rob.pid(10, -525)
+
+# run4()
+
 def battery():
     rob = Robot()
 
