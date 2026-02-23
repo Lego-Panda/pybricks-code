@@ -42,11 +42,14 @@ def run2():
     hub.speaker.beep(1100, 120) # High G
     wait(400)
 
-    for i in range(9):
-        arm.run_time(-1000, 500)
+    rob.pid(42, -525)
+    for i in range(4):
+        arm.run_time(-700, 700)
         wait(200)
-        arm.run_time(1000, 800)
-        
+        arm.run_time(700, 700)
+    wait(200)
+    rob.pid(50, 525)
+
 run2()
 
 def run5():
