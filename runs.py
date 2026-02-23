@@ -33,7 +33,7 @@ def run1():
 
 def run2():
     rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
-
+    
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)  # Low C
     wait(100)
@@ -41,18 +41,13 @@ def run2():
     wait(10)
     hub.speaker.beep(1100, 120) # High G
     wait(400)
-  
-    rob.pid(49, -525)
-    wait(200)
 
-    for i in range(6):
-        arm.run_time(1000, 800)
+    for i in range(9):
+        arm.run_time(-1000, 500)
         wait(200)
-        arm.run_time(-1000, 600)
-    wait(200)
-
-    # rob.pid(-50, 525)
-# run2()
+        arm.run_time(1000, 800)
+        
+run2()
 
 def run5():
     rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
