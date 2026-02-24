@@ -50,6 +50,45 @@ class Robot:
         leftwheel.brake()
         rightwheel.brake()
 
+    def decel(self, distance, speed):
+        hub.imu.reset_heading(0)
+        leftwheel.reset_angle(0)
+        rightwheel.reset_angle(0)
+
+        self.errorSum = 0
+        self.lastError = 0
+
+        min_speed = 50
+        decel_start = (distance / CIRCUMFERENCE * 360) * 0.3
+
+        while abs(leftwheel.angle()) < distance / CIRCUMFERENCE * 360:
+
+            remaining_distance = (distance / CIRCUMFERENCE * 360) - abs(leftwheel.angle())
+            print(remaining_distance)
+            if remaining_distance <= 40:
+                break
+
+            error = 0  - hub.imu.heading()
+
+            if remaining_distance <= decel_start and decel_start > 0:
+                current_speed = min_speed + (speed - min_speed) * (remaining_distance / decel_start)
+            else:
+                current_speed = speed
+                
+
+            pidValue = self.kp * error + self.ki * self.errorSum + self.kd * (error - self.lastError)
+
+            rightwheel.run(int(current_speed + pidValue))
+            leftwheel.run(int(-current_speed + pidValue))
+
+            self.lastError = error
+            self.errorSum += error
+
+            wait(10)
+
+        leftwheel.brake()
+        rightwheel.brake()
+
     def turn(self, degrees, speed):
         hub.imu.reset_heading(-degrees)
         leftwheel.reset_angle(0)
