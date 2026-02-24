@@ -65,7 +65,7 @@ class Robot:
 
             remaining_distance = (distance / CIRCUMFERENCE * 360) - abs(leftwheel.angle())
             print(remaining_distance)
-            if remaining_distance <= 40:
+            if remaining_distance <= 50:
                 break
 
             error = 0  - hub.imu.heading()
