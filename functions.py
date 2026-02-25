@@ -58,15 +58,12 @@ class Robot:
         self.errorSum = 0
         self.lastError = 0
 
-        min_speed = 50
+        min_speed = 100
         decel_start = (distance / CIRCUMFERENCE * 360) * 0.3
 
         while abs(leftwheel.angle()) < distance / CIRCUMFERENCE * 360:
 
             remaining_distance = (distance / CIRCUMFERENCE * 360) - abs(leftwheel.angle())
-            print(remaining_distance)
-            if remaining_distance <= 50:
-                break
 
             error = 0  - hub.imu.heading()
 
@@ -88,7 +85,7 @@ class Robot:
 
         leftwheel.brake()
         rightwheel.brake()
-
+    
     def turn(self, degrees, speed):
         hub.imu.reset_heading(-degrees)
         leftwheel.reset_angle(0)
