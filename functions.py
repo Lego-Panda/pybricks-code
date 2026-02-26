@@ -58,7 +58,8 @@ class Robot:
         self.errorSum = 0
         self.lastError = 0
 
-        min_speed = 100
+        min_speed = 100 if speed >= 0 else -100
+
         decel_start = (distance / CIRCUMFERENCE * 360) * 0.3
 
         while abs(leftwheel.angle()) < distance / CIRCUMFERENCE * 360:
