@@ -175,7 +175,7 @@ class Robot:
                 turnPidValue = self.kp * turnError + self.ki * turnErrorSum + self.kd * (turnError - turnLastError)
 
                 rightwheel.run(int(turnSpeed * singnum(turnDegrees) - turnPidValue))
-                leftwheel.run(int(-turnSpeed * singnum(turnDegrees) - turnPidValue))
+                leftwheel.run(int(turnSpeed * singnum(turnDegrees) - turnPidValue))
 
                 turnLastError = turnError
 
