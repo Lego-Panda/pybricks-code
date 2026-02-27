@@ -105,8 +105,8 @@ class Robot:
 
             pidValue = self.kp * error + self.ki * self.errorSum + self.kd * (error - self.lastError)
 
-            rightwheel.run(int(speed * singnum(degrees) - pidValue))
-            leftwheel.run(int(speed * singnum(degrees) - pidValue))
+            rightwheel.run(int(speed * singnum(degrees) + pidValue))
+            leftwheel.run(int(speed * singnum(degrees) + pidValue))
 
             self.lastError = error
             self.errorSum += error
