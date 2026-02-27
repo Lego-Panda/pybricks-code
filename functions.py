@@ -1,3 +1,5 @@
+from robot_conf import CIRCUMFERENCE
+from robot_conf import leftwheel
 from pybricks.hubs import PrimeHub
 from pybricks.pupdevices import Motor, ColorSensor
 from pybricks.parameters import Button, Color, Direction, Port, Side, Stop, Axis
@@ -50,7 +52,7 @@ class Robot:
         leftwheel.brake()
         rightwheel.brake()
 
-    def decel(self, distance, speed):
+    def accelDecel(self, distance, speed):
         hub.imu.reset_heading(0)
         leftwheel.reset_angle(0)
         rightwheel.reset_angle(0)
@@ -60,7 +62,7 @@ class Robot:
 
         min_speed = 100 if speed >= 0 else -100
 
-        decel_start = (distance / CIRCUMFERENCE * 360) * 0.3
+        thirty_percent_dist = (distance / CIRCUMFERENCE * 360) * 0.3
 
         while abs(leftwheel.angle()) < distance / CIRCUMFERENCE * 360:
 
@@ -68,12 +70,15 @@ class Robot:
 
             error = 0  - hub.imu.heading()
 
-            if remaining_distance <= decel_start and decel_start > 0:
-                current_speed = min_speed + (speed - min_speed) * (remaining_distance / decel_start)
+            if abs(leftwheel.angle()) <= thirty_percent_dist and thirty_percent_dist > 0:
+                current_speed = min_speed + (speed - min_speed) * (abs(leftwheel.angle()) / thirty_percent_dist)
+
+            elif remaining_distance <= thirty_percent_dist and thirty_percent_dist > 0:
+                current_speed = min_speed + (speed - min_speed) * (remaining_distance / thirty_percent_dist)
+
             else:
                 current_speed = speed
                 
-
             pidValue = self.kp * error + self.ki * self.errorSum + self.kd * (error - self.lastError)
 
             rightwheel.run(int(current_speed + pidValue))
@@ -86,7 +91,7 @@ class Robot:
 
         leftwheel.brake()
         rightwheel.brake()
-    
+
     def turn(self, degrees, speed):
         hub.imu.reset_heading(-degrees)
         leftwheel.reset_angle(0)
@@ -105,8 +110,8 @@ class Robot:
 
             pidValue = self.kp * error + self.ki * self.errorSum + self.kd * (error - self.lastError)
 
-            rightwheel.run(int(speed * singnum(degrees) + pidValue))
-            leftwheel.run(int(speed * singnum(degrees) + pidValue))
+            rightwheel.run(int(speed * singnum(degrees) - pidValue))
+            leftwheel.run(int(speed * singnum(degrees) - pidValue))
 
             self.lastError = error
             self.errorSum += error
@@ -157,7 +162,6 @@ class Robot:
         turnErrorSum = 0
         shellLastError = 0
         shellErrorSum = 0
-        SHELL_RATIO = 1/3.78
 
         turnAtSetPoint = False
         shellAtSetPoint = False
@@ -277,23 +281,13 @@ class Robot:
                 Robot.stopColor(self, "stopYellow")
                 break
 
-    def battery(self):
+    def battery_percent(self):
         voltage = hub.battery.voltage()
-        
-        # 2. Define the absolute physical limits of the battery
-        MIN_VOLTAGE = 6500
-        MAX_VOLTAGE = 8400
-        
-        # 3. Map the voltage to a 100-point scale
-        percentage = (voltage - MIN_VOLTAGE) * 100 / (MAX_VOLTAGE - MIN_VOLTAGE)
-        
-        # 4. "Clamp" the value so it cannot exceed 100% or drop below 0%
-        # (Sometimes a fresh off-the-charger battery spikes to 8450mV for a few seconds)
-        percentage = max(0, min(100, percentage))
-        
-        return round(percentage, 1)
 
-        # --- Execution ---
-        print("Battery Level:", get_battery_percentage(), "%")
-        print("Raw Voltage:", hub.battery.voltage(), "mV")
-        print("Raw Current:", hub.battery.current(), "mA")
+        min_v = 6000
+        max_v = 8300
+
+        percent = (voltage - min_v) / (max_v - min_v) * 100
+        percent = max(0, min(100, percent))  # clamp 0–100
+
+        print(percent)
