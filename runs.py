@@ -19,29 +19,36 @@ def run1():
     hub.speaker.beep(1100, 120) # High G
     wait(400)
 
-    rob.pid(65, -525)
+    rob.decel(70, -525)
     wait(300)
-    rob.turn(-25, 125)
+    rob.turn(-20, 125)
     wait(300)
     arm.run(-700)
     wait(400)
     arm.stop()
+    wait(600)
+    rob.turn(-20, 200)
     wait(300)
     rob.pid(3, -100)
     wait(300)
-    arm.run_time(660, 3000)
-    wait(300)
+    arm.run_time(660, 1000)
+    wait(500)
     rob.pid(6, 100)
     wait(300)
     rob.turn(20, 125)
     wait(300)
-    rob.pid(6, -100)
+    rob.pid(5, -100)
     wait(300)
-    rob.shellTurn(70, 400)
-    rob.turn(70, 125)
-
-    # rob.pid(10000000, 1000)
-
+    shell.run_time(1000, 600)
+    wait(300)
+    rob.pid(10, 200)
+    wait(300)
+    rob.turn(50, 125)
+    wait(300)
+    rob.pid(60, 525)
+    wait(300)
+    rob.shellButton(-180)
+    
 # run1()
 
 def run2():
@@ -102,31 +109,6 @@ def run3():
 
 # run3()
 
-def run7():
-    rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
-
-    hub.speaker.volume(20)
-    hub.speaker.beep(600, 80)  # Low C
-    wait(100)
-    hub.speaker.beep(800, 80)  # Mid E
-    wait(10)
-    hub.speaker.beep(1100, 120) # High G
-    wait(400)
-
-    rob.pid(50,-500)
-    wait(400)
-    rob.pid(3,500)
-    wait(400)
-    arm.run_time(660, 1000)
-    wait(400)
-    rob.pid(4,650)
-    wait(200)
-    rob.pid(5, -650)
-    wait(200)
-    # rob.pid(15,525)
-    # wait(200)
-    rob.pid(45, 525)
-
 def run4():
     rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
     hub.speaker.volume(20)
@@ -160,6 +142,52 @@ def run4():
     rob.pid(10, -525)
 
 # run4()
+
+def run5():
+    rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
+
+    arm.run_time(-1000, 725)
+    wait(300)
+    rob.decel(70, -525)
+    wait(300)
+    rob.turn(45, 100)
+    wait(300)
+    rob.pid(10, -525)
+    wait(300)
+    rob.pid(15, 525)
+    wait(300)
+    rob.turn(-50, 100)
+    wait(300)
+    rob.pid(100, 525)
+
+# run5()
+
+def run7():
+    rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
+
+    hub.speaker.volume(20)
+    hub.speaker.beep(600, 80)  # Low C
+    wait(100)
+    hub.speaker.beep(800, 80)  # Mid E
+    wait(10)
+    hub.speaker.beep(1100, 120) # High G
+    wait(400)
+
+    rob.pid(50,-500)
+    wait(400)
+    rob.pid(3,500)
+    wait(400)
+    arm.run_time(660, 1000)
+    wait(400)
+    rob.pid(4,650)
+    wait(200)
+    rob.pid(5, -650)
+    wait(200)
+    # rob.pid(15,525)
+    # wait(200)
+    rob.pid(45, 525)
+
+# run7()
 
 def battery():
     rob = Robot()
