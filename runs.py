@@ -110,37 +110,45 @@ def run3():
 # run3()
 
 def run4():
-    rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
+    rob = Robot(kp=1.2, ki=0, kd=0.5, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
+
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)  # Low C
     wait(100)
     hub.speaker.beep(800, 80)  # Mid E
     wait(10)
     hub.speaker.beep(1100, 120) # High G
-    wait(10)
-    hub.light.on(Color.WHITE)
-    hub.display.animate(["2", "6", "1"])
     wait(400)
 
-
-    rob.pid(15, 525)
+    rob.pid(23,400)
     wait(300)
-    rob.turn(90, 125)
+    rob.turn(90, 200)
     wait(300)
-    rob.pid(65, 525)
+    rob.decel(67, 525)
     wait(300)
-    rob.turnWhileShell(90, -90, 420, 125)
+    rob.turnWhileShell(-90, 90)
     wait(300)
-    rob.pid(5, -525)
+    rob.pid(8,150)
     wait(300)
-    rob.turn(10, 125)
+    rob.shellTurn(10, 400)
     wait(300)
-    rob.pid(15, 525)
+    arm.run_time(-660, 3000)
     wait(300)
-    rob.turn(50, 125)
+    rob.pid(10,-300)
+    wait(400)
+    rob.turn(-55, 200)
     wait(300)
-    rob.pid(10, -525)
-
+    rob.pid(10, -100)
+    wait(200)
+    rob.turn(-20, 200)
+    wait(200)
+    rob.decel(70, 525)
+    wait(200)
+    rob.turn(30, 200)
+    wait(300)
+    rob.pid(20, 525)
+    wait(300)
+    rob.stopColor("stopYellow")
 # run4()
 
 def run5():
