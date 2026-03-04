@@ -9,8 +9,6 @@ from runs import *
 
 hub = PrimeHub(Axis.Y, Axis.Z)
 
-rob = Robot(kp=0.08, ki=0, kd=0.1, shellKp=2, shellKi=0, shellKd=10, shellTol=0, tol=10, wait_time=1)
-
 hub.display.orientation(Side.BOTTOM)
 selected = hub_menu("H","1", "2", "3", "4", "5", "6", "7", "8", "B")
 
