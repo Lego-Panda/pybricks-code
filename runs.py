@@ -344,15 +344,19 @@ def run8():
 ###
 
 def test():
-    rob = Robot(kp=1, ki=0, kd=0.1, turnKp=8, turnKi=0, turnKd=15, shellKp=22, shellKi=0, shellKd=20, shellTol=2, turnTol=10, turn_wait_time=1)
+    rob = Robot(kp=2.58, ki=0.155, kd=10.739, turnKp=6.12, turnKi=0.93, turnKd=10.073, shellKp=22, shellKi=0, shellKd=20, shellTol=2, turnTol=10, turn_wait_time=1)
     # rob_t = Robot_test(kp=1, ki=0, kd=0.1, turnKp=1, turnKi=0, turnKd=0, shellKp=22, shellKi=0, shellKd=20, shellTol=2, turnTol=10, turn_wait_time=1)
-    # rob.pid(100000,100)
+    rob.pid(20,40)
+    rob.turn(180,40)
+    rob.pid(20,40)
+
     # wheels.drive(1000, 
     # arm.run_time(1000, 1000)
     # # wait(100000)
-    arm.run_time(-700,800)
+    #arm.run_time(-700,800)
     # wait(400)
     # rob.pid(10, 50)
+    
 
 ###
 
@@ -383,6 +387,6 @@ def battery():
 
 #run8()
 
-# test()
+test()
 
-battery()
+#battery()
