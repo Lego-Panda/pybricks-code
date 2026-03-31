@@ -22,5 +22,5 @@ colorS = ColorSensor(Port.D)
 
 wheels = DriveBase(leftwheel, rightwheel, 62.4, 100)
 
-CIRCUMFERENCE = 18.89
+CIRCUMFERENCE = 19.6
 SHELL_RATIO = 360 / 1795
