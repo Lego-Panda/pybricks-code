@@ -315,6 +315,9 @@ class Robot:
 
             self.lastError = error
 
+            if shell.stalled():
+                break
+
             if abs(error) <= self.shellTol: 
                 time_at_setpoint += 20
             else: 
