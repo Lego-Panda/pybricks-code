@@ -69,7 +69,7 @@ class Robot:
                 break
             wait(10)
 
-    def pid_distance(self, distance, speed, kp, ki, kd):
+    def pid_distance(self, distance, speed):
         hub.imu.reset_heading(0)
         leftwheel.reset_angle(0)
         rightwheel.reset_angle(0)
@@ -92,7 +92,7 @@ class Robot:
 
             self.errorSum = max(-50, min(50, self.errorSum + error))
             
-            pidValue = (kp * error) + (ki * self.errorSum) + (kd * (error - self.lastError))
+            pidValue = (self.kp * error) + (self.ki * self.errorSum) + (self.kd * (error - self.lastError))
 
             leftwheel.dc(max(-100, min(100, speed - pidValue)))
             rightwheel.dc(max(-100, min(100, speed + pidValue)))
