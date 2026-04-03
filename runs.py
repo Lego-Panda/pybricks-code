@@ -116,63 +116,69 @@ def run4():
     hub.speaker.beep(600, 80)
     wait(100)
 
-    # rob.pid(50, 50)
-    # rob.turn(90, 50)
-    # rob.shellTurn(90)
-
-    # rob.pid_distance(22, -50, 2, 0 , 10)
-    # wait(100)
-    # rob.turn(-90, 50)
-    rob.arc(35, 85, -50)
-    wait(100)
+    rob.arc(38, 90, -50)
+    wait(10)
     rob.accelDecel(45, -70)
     wait(100)
     rob.turnWhileShell(-270, 90, 100, 50)
     wait(100)
-    rightwheel.dc(-30)
-    leftwheel.dc(-30)
-    wait(1200)
-    wheels.brake()
+    rob.moveTime(1400, -30)
     wait(100)
     rob.shellTurn(20)
-    # rob.shellTurnTime(350, 100)
     wait(100)
     arm.run_time(-660, 3000)
     wait(10)
     rob.shellTurn(-20)
     wait(10)
-    rob.pid(10, 30)
+    rob.arc(11, -50, 40)
     wait(10)
-    rob.turn(-50, 40)
-    wait(10)
-    rob.pid(11, 30)
-    wait(600)
-    # rob.turn(-20, 50)
-    # wait(10)
-    rob.pid(15, -60)
-    wait(10)
-    rob.turn(-45, 50)
-    wait(10)
-    rob.pid(20, 50)
-    wait(10)
-    rob.turn(30, 50)
-    wait(10)
-    rob.pid(70, 70)
-    wait(10)
-    # rob.stopColor("stopYellow", 180, 100r)
-    # rob.shellTurn(90 )
+    rob.pid(7, 30)
+    wait(1000)
+    # # rob.pid(15, -50)
+    rob.turn(-25, 60)
+
+    while True:
+        if hub.buttons.pressed():
+            rob.shellTurn(-90)
+            wait(10)
+            break
 
 
 ###
 
 def run5():
-    rob = Robot(kp=4.32, ki=0.145, kd=32, turnKp=9.3, turnKi=1.185, turnKd=18.242, shellKp=24.0, shellKi=2.133, shellKd=67.5, shellTol=5, turnTol=5, armKp=4.5, armKi=0, armKd=6.75, armTol=2, turn_wait_time=1)
+    rob = Robot(kp=4.32, ki=0.145, kd=32, turnKp=9.3, turnKi=1.185, turnKd=18.242, shellKp=24.0, shellKi=2.133, shellKd=67.5, shellTol=2, turnTol=2, armKp=4.5, armKi=0, armKd=6.75, armTol=2, turn_wait_time=1)
 
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)
     wait(500)
 
-    rob.pid(30, -50)
+    rob.pid_distance(15, -50)
+    wait(10) 
+    rob.shellTurn(180, 100)
+    wait(10)
+    rob.accelDecel(75, -60)
+    wait(10)
+    rob.moveTime(1000, -30)
+    wait(10)
+    rob.pid_distance(3, 30)
+    wait(10)
+    rob.turn(90, 40)
+    wait(10)
+    arm.run_time(-700, 1400)
+    wait(300)
+    rob.pid_distance(8, 25)
+    wait(300)
+    rob.moveTime(1000, 25)
+    wait(300)
+    arm.run_target(1000, 675)
+    wait(300)
+    arm.run_time(-1000, 2000)
+    wait(300)
+    rob.pid_distance(10, -30)
+    wait(300)
+    rob.turn(-35, 50)
+    
 
     
 ###
@@ -323,7 +329,7 @@ def battery():
 
 # run4()
 
-#run5()
+# run5()
 
 # run6()
 
@@ -333,6 +339,6 @@ def battery():
 
 # test()
 
-calibration()
+# calibration()
 
-#battery()
+battery()
