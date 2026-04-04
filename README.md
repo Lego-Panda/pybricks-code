@@ -84,6 +84,11 @@ _clone the repository_
 - *shellWhileTurn* - Turn the shell while the robot is also Turning
 - *moveWhileShell* - Move Straight while the shell is also turning.
 
+### Auto Calibration File:
+- *auto_tune_turn*: auto tune the PID's Kp, Ki and Kd for turning precisely.
+- *auto_tune_straight_precision*: auto tune the PID's Kp, Ki and Kd for moving straight precisely.
+- *auto_tune_shell*: auto tune the PID's Kp, Ki and Kd for turning the shell precisely.
+
 
 ![Logo](https://github.com/Lego-Panda/pybricks-code-2025-2026/blob/main/LegoPandaLogo.png?raw=true)
 
