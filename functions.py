@@ -50,6 +50,9 @@ class Robot:
             leftwheel.dc(max(-100, min(100, speed - pidValue)))
             rightwheel.dc(max(-100, min(100, speed + pidValue)))
 
+            if rightwheel.stalled() or leftwheel.stalled():
+                break
+
             self.lastError = error
             wait(10)
 
@@ -110,6 +113,43 @@ class Robot:
 
         leftwheel.brake()
         rightwheel.brake()
+
+    def pid_distance(self, distance, speed):
+        hub.imu.reset_heading(0)
+        leftwheel.reset_angle(0)
+        rightwheel.reset_angle(0)
+
+        target_spins = distance / CIRCUMFERENCE
+
+        self.errorSum = 0
+        self.lastError = 0
+
+        while True:
+            average_angle = (abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2
+            current_spins = average_angle / 360
+
+            distance_left = target_spins - current_spins
+
+            if distance_left < 0.01:
+                break
+
+            if rightwheel.stalled() or leftwheel.stalled():
+                break
+
+            error = -hub.imu.heading()
+
+            self.errorSum = max(-50, min(50, self.errorSum + error))
+            
+            pidValue = (self.kp * error) + (self.ki * self.errorSum) + (self.kd * (error - self.lastError))
+
+            leftwheel.dc(max(-100, min(100, speed - pidValue)))
+            rightwheel.dc(max(-100, min(100, speed + pidValue)))
+
+            self.lastError = error
+            wait(10)
+
+        leftwheel.dc(0)
+        rightwheel.dc(0)
 
     def arc(self, distance, target_angle, speed):
         hub.imu.reset_heading(0)
