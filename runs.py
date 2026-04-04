@@ -75,14 +75,14 @@ def run2():
 ####
 
 def run3():
-    rob = Robot(kp=1, ki=0, kd=2, turnKp=0, turnKi=0, turnKd=0, shellKp=2, shellKi=0, shellKd=10, shellTol=0, turnTol=10, turn_wait_time=1)
+    rob = Robot(kp=2.7, ki=0, kd=16.22, turnKp=0, turnKi=0, turnKd=0, shellKp=2, shellKi=0, shellKd=10, shellTol=0, turnTol=10, turn_wait_time=1)
 
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)  # Low C
     wait(100)
 
     # rob.accelDecel(42, -525)
-    rob.pid_distance(45, -50, 1, 0, 5)
+    rob.pid_distance(45, -50)
     wait(10)
     arm.run(-1000)
     wait(1000)
@@ -116,51 +116,41 @@ def run4():
     hub.speaker.beep(600, 80)
     wait(100)
 
-    # rob.pid(50, 50)
-    # rob.turn(90, 50)
-    # rob.shellTurn(90)
-
-    # rob.pid_distance(22, -50, 2, 0 , 10)
-    # wait(100)
-    # rob.turn(-90, 50)
-    rob.arc(35, 85, -50)
-    wait(100)
+    rob.arc(38, 90, -50)
+    wait(60)
     rob.accelDecel(45, -70)
     wait(100)
     rob.turnWhileShell(-270, 90, 100, 50)
     wait(100)
-    rightwheel.dc(-30)
-    leftwheel.dc(-30)
-    wait(1200)
-    wheels.brake()
+    rob.pid_distance(8, -30)
     wait(100)
     rob.shellTurn(20)
-    # rob.shellTurnTime(350, 100)
     wait(100)
     arm.run_time(-660, 3000)
     wait(10)
     rob.shellTurn(-20)
     wait(10)
-    rob.pid(10, 30)
+    rob.pid_distance(2, 30)
+    wait(100)
+    rob.arc(11, -50, 40)
     wait(10)
-    rob.turn(-50, 40)
+    rob.pid(9, 30)
+    wait(300)
+    rob.pid(3, -30)
+    wait(1000)
+    rob.turn(-30, 60)
+    wait(300)
+    rob.pid(100, -80)
     wait(10)
-    rob.pid(11, 30)
-    wait(600)
-    # rob.turn(-20, 50)
-    # wait(10)
-    rob.pid(15, -60)
+    rob.turn(45, 60)
     wait(10)
-    rob.turn(-45, 50)
-    wait(10)
-    rob.pid(20, 50)
-    wait(10)
-    rob.turn(30, 50)
-    wait(10)
-    rob.pid(70, 70)
-    wait(10)
-    # rob.stopColor("stopYellow", 180, 100r)
-    # rob.shellTurn(90 )
+    rob.pid(30, -80)
+
+    while True:
+        if hub.buttons.pressed():
+            rob.shellTurn(-90)
+            wait(10)
+            break
 
 
 ###
@@ -168,6 +158,7 @@ def run4():
 def run5():
     rob = Robot(kp=4.32, ki=0.145, kd=32, turnKp=9.66, turnKi=1.307, turnKd=17.844, shellKp=24.0, shellKi=2.133, shellKd=67.5, shellTol=5, turnTol=2, armKp=4.5, armKi=0, armKd=6.75, armTol=2, turn_wait_time=1)
 
+    rob.battery_percent()
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)
     wait(500)
@@ -176,9 +167,9 @@ def run5():
     wait(100)
     rob.shellTurn(-270)
     wait(10)
-    rob.accelDecel(65, -70)
-    wait(10)
-    rob.moveTime(1000,-30)
+    rob.accelDecel(80, -70)
+    # wait(10)
+    # rob.moveTime(1000,-30)
     wait(300)
     rob.pid_distance(2,30)
 
@@ -196,6 +187,7 @@ def run5():
     arm.run_time(-900, 300)
     wait(10)
     rob.pid_distance(13, -30)
+
 
     
 ###
@@ -267,14 +259,25 @@ def run7():
 
 def run8():
     # rob = Robot(kp=1, ki=0, kd=0.1, turnKp=9, turnKi=0, turnKd=18, shellKp=0, shellKi=0, shellKd=0, shellTol=0, turnTol=10,armKp=4.5, armKi=0, armKd=6.75, armTol=2, turn_wait_time=100)
-    rob = Robot(kp=1, ki=0, kd=0.1, turnKp=6.12, turnKi=0.93, turnKd=12.073, shellKp=0, shellKi=0, shellKd=0, shellTol=0, turnTol=2,armKp=4.5, armKi=0, armKd=6.75, armTol=2, turn_wait_time=100)
+    rob = Robot(kp=1.8, ki=0, kd=11.493, turnKp=4.02, turnKi=1.021, turnKd=19, shellKp=21.6, shellKi=1.399, shellKd=83.362, shellTol=2, turnTol=2,armKp=4.5, armKi=0, armKd=6.75, armTol=2, turn_wait_time=100)
     
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)
-    wait(100) 
+    wait(100)
 
+    rob.arc(40, -55, -65)
+    wait(10)
+    rob.pid(8, -40)
+    wait(10)
+    rob.pid(25, 65)
+    wait(300)
+    rob.turn(45, 50)
+    wait(300)
+    rob.accelDecel(70, -65)
+    wait(300)
+    rob.turn(-90, 50)
+    wait(300)
     
-
 
 ###
 
@@ -312,12 +315,15 @@ def calibration():
     selected_calibration = hub_menu("F", "T", "C")
     if selected_calibration == "F":
         hub.system.set_stop_button(None)
+        hub.speaker.beep()
         rob_c.auto_tune_straight_precision(60, 50)
     elif selected_calibration == "T":
         hub.system.set_stop_button(None)
+        hub.speaker.beep()
         rob_c.auto_tune_turn()
     elif selected_calibration == "C":
         hub.system.set_stop_button(None)
+        hub.speaker.beep()
         rob_c.auto_tune_shell()
 
 
@@ -330,11 +336,17 @@ def battery():
     #     print(hub.battery.voltage())
     #     wait(100)
     # hub.display.icon(Icon.HAPPY)
-    
+
+###
+
 def clean():
     while True: 
+        rob = Robot()
+        rob.battery_percent()
         leftwheel.dc(100)
-        rightwheel.dc(100)
+        rightwheel.dc(-100)
+        shell.dc(100)
+        arm.dc(100)
 
 ######
 
@@ -346,7 +358,7 @@ def clean():
 
 # run4()
 
-# run5()
+run5()
 
 # run6()
 
@@ -360,4 +372,4 @@ def clean():
 
 # battery()
 
-clean()
+# clean()
