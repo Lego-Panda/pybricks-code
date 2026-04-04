@@ -166,77 +166,36 @@ def run4():
 ###
 
 def run5():
-    rob = Robot(kp=2.5, ki=0, kd=8, turnKp=8, turnKi=0, turnKd=20, shellKp=30, shellKi=0, shellKd=20, shellTol=5, turnTol=5, armKp=4.5, armKi=0, armKd=6.75, armTol=2, turn_wait_time=1)
+    rob = Robot(kp=4.32, ki=0.145, kd=32, turnKp=9.66, turnKi=1.307, turnKd=17.844, shellKp=24.0, shellKi=2.133, shellKd=67.5, shellTol=5, turnTol=2, armKp=4.5, armKi=0, armKd=6.75, armTol=2, turn_wait_time=1)
 
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)
     wait(500)
 
-    # Straight before Spinning shell
-    # rob.pid(30, -50)
-    rob.accelDecel(30, -50)
+    rob.pid_distance(18, -50)
+    wait(100)
+    rob.shellTurn(-270)
     wait(10)
-
-    # Spinning shell
-    rob.shellTurn(90)
+    rob.accelDecel(65, -70)
     wait(10)
+    rob.moveTime(1000,-30)
+    wait(300)
+    rob.pid_distance(2,30)
 
-    # Going to align with the kir
-    # rob.pid(60, -50)
-    rob.accelDecel(60, -50)
     wait(10)
-
-    rob.moveTime(1000, -30)
+    rob.turn(90,45)
     wait(300)
 
-    # Away from the kir
-    rob.pid(3, 25)
-    wait(10) 
 
-    # Look to the mission
-    rob.turn(92, 40)
+    rob.pid_distance(10, 45)
     wait(10)
-
-    # Put the arm down
-    arm.run_time(-1000, 1000)
+    rob.pid_distance(15, 25)
     wait(10)
-    arm.run_angle(1000, 120)
+    arm.run_time(900, 1000)
     wait(10)
-    
-    # drive straight for seconds, because using normal pid will just get it stuck.
-    wheels.drive(50, 0)  
-    wait(2350)
-    wheels.brake()
-
-    # Arm up
+    arm.run_time(-900, 300)
     wait(10)
-    rob.armPID(250, 100)
-    wait(400)
-
-    # # Arm down
-    arm.run_time(-1000,500)
-    wait(10)
-    # arm.run_time(500,500)
-    # wait(400)
-    # rob.turn(10, 50)
-    # wait(10)
-    # rob.moveTime(1400, -30)
-    rob.pid(2, -30)
-    wait(10)
-    rob.turn(-15, 30) 
-    wait(10)
-
-    # look to the base
-    rob.turn(-100, 50)
-    wait(10)
-
-    # drive to base
-    rob.pid(100, 70)
-
-    # # rob.armPID(1000, 100)
-    # rob.armPID(-390, 100)
-    # wait(10)
-    # rob.armPID(250, 100)
+    rob.pid_distance(13, -30)
 
     
 ###
@@ -372,7 +331,10 @@ def battery():
     #     wait(100)
     # hub.display.icon(Icon.HAPPY)
     
-
+def clean():
+    while True: 
+        leftwheel.dc(100)
+        rightwheel.dc(100)
 
 ######
 
@@ -396,4 +358,6 @@ def battery():
 
 # calibration()
 
-battery()
+# battery()
+
+clean()
