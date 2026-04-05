@@ -50,9 +50,6 @@ class Robot:
             leftwheel.dc(max(-100, min(100, speed - pidValue)))
             rightwheel.dc(max(-100, min(100, speed + pidValue)))
 
-            if rightwheel.stalled() or leftwheel.stalled():
-                break
-
             self.lastError = error
             wait(10)
 
@@ -71,6 +68,40 @@ class Robot:
                 rightwheel.brake()
                 break
             wait(10)
+
+    def pid_distance(self, distance, speed):
+        hub.imu.reset_heading(0)
+        leftwheel.reset_angle(0)
+        rightwheel.reset_angle(0)
+
+        target_spins = distance / CIRCUMFERENCE
+
+        self.errorSum = 0
+        self.lastError = 0
+
+        while True:
+            average_angle = (abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2
+            current_spins = average_angle / 360
+
+            distance_left = target_spins - current_spins
+
+            if distance_left < 0.01:
+                break
+
+            error = -hub.imu.heading()
+
+            self.errorSum = max(-50, min(50, self.errorSum + error))
+            
+            pidValue = (self.kp * error) + (self.ki * self.errorSum) + (self.kd * (error - self.lastError))
+
+            leftwheel.dc(max(-100, min(100, speed - pidValue)))
+            rightwheel.dc(max(-100, min(100, speed + pidValue)))
+
+            self.lastError = error
+            wait(10)
+
+        leftwheel.dc(0)
+        rightwheel.dc(0)
 
     def accelDecel(self, distance, speed):
         hub.imu.reset_heading(0)
@@ -113,43 +144,6 @@ class Robot:
 
         leftwheel.brake()
         rightwheel.brake()
-
-    def pid_distance(self, distance, speed):
-        hub.imu.reset_heading(0)
-        leftwheel.reset_angle(0)
-        rightwheel.reset_angle(0)
-
-        target_spins = distance / CIRCUMFERENCE
-
-        self.errorSum = 0
-        self.lastError = 0
-
-        while True:
-            average_angle = (abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2
-            current_spins = average_angle / 360
-
-            distance_left = target_spins - current_spins
-
-            if distance_left < 0.01:
-                break
-
-            if rightwheel.stalled() or leftwheel.stalled():
-                break
-
-            error = -hub.imu.heading()
-
-            self.errorSum = max(-50, min(50, self.errorSum + error))
-            
-            pidValue = (self.kp * error) + (self.ki * self.errorSum) + (self.kd * (error - self.lastError))
-
-            leftwheel.dc(max(-100, min(100, speed - pidValue)))
-            rightwheel.dc(max(-100, min(100, speed + pidValue)))
-
-            self.lastError = error
-            wait(10)
-
-        leftwheel.dc(0)
-        rightwheel.dc(0)
 
     def arc(self, distance, target_angle, speed):
         hub.imu.reset_heading(0)
@@ -235,6 +229,61 @@ class Robot:
 
         leftwheel.brake()
         rightwheel.brake()
+
+    def turn_one_wheel(self, degrees, speed, active_wheel="left"):
+        hub.imu.reset_heading(0)
+        leftwheel.reset_angle(0)
+        rightwheel.reset_angle(0)
+
+        self.errorSum = 0
+        self.lastError = 0
+
+        time_at_setpoint = 0
+        wait(10)
+
+        while time_at_setpoint < self.turn_wait_time:
+
+            current_heading = hub.imu.heading()
+            error = degrees - current_heading
+            
+            if abs(error) < 15:
+                self.errorSum = max(-50, min(50, self.errorSum + error))
+            else:
+                self.errorSum = 0 
+
+            pidValue = self.turnKp * error + self.turnKi * self.errorSum + self.turnKd * (error - self.lastError)
+
+            if active_wheel == "left":
+                left_power = int(max(-speed, min(speed, -pidValue)))
+                print("Error:", error, "| PID:", pidValue, "| L_PWR:", left_power, "| Pivot: Right")
+                leftwheel.dc(left_power)
+                rightwheel.brake()
+                
+            elif active_wheel == "right":
+                right_power = int(max(-speed, min(speed, pidValue)))
+                print("Error:", error, "| PID:", pidValue, "| R_PWR:", right_power, "| Pivot: Left")
+                rightwheel.dc(right_power)
+                leftwheel.brake()
+                
+            else:
+                print("Invalid wheel. Use 'left' or 'right'.")
+                break
+
+            self.lastError = error
+
+            if abs(error) <= self.turnTol: 
+                time_at_setpoint += 20
+            else: 
+                time_at_setpoint = 0
+            
+            wait(20)
+
+        leftwheel.brake()
+        rightwheel.brake()
+
+    # --------------------------------
+    # ------------- SHELL ------------
+    # --------------------------------
     
     def shellTurn(self, degrees, speed=100):
         
@@ -265,6 +314,9 @@ class Robot:
             shell.dc(shell_power)
 
             self.lastError = error
+
+            if shell.stalled():
+                break
 
             if abs(error) <= self.shellTol: 
                 time_at_setpoint += 20
@@ -303,7 +355,6 @@ class Robot:
         shell_time_at_setpoint = 0
         wait(100)
 
-        # THE FIX: The loop continues until BOTH timers reach 100ms at the exact same time.
         while turn_time_at_setpoint < 100 or shell_time_at_setpoint < 100:
 
             # ==========================================
@@ -434,81 +485,45 @@ class Robot:
 
         print(percent)
 
-    def moveWhileShell(self, shellDegrees, moveDistance, shellSpeed=500, moveSpeed=150):
-
-        hub.imu.reset_heading(0)
-        leftwheel.reset_angle(0)
-        rightwheel.reset_angle(0)
-        shell.reset_angle(0)
-        self.errorSum = 0
-        moveLastError = 0
-        moveErrorSum = 0
-        shellLastError = 0
-        shellErrorSum = 0
-
-        moveAtSetPoint = False
-        shellAtSetPoint = False
-        shell_on_setpoint = True
-        shell_time_at_setpoint = 0
-        wait(10)
-
-        while not moveAtSetPoint or not shellAtSetPoint:
-            if not moveAtSetPoint:
-                if abs(leftwheel.angle()) >= moveDistance / CIRCUMFERENCE * 360:
-                    moveAtSetPoint = True
-                    wheels.brake()
-                else:
-                    moveError = 0 - hub.imu.heading() 
-                    movePidValue = self.kp * moveError + self.ki * moveErrorSum + self.kd * (moveError - moveLastError)
-
-                    rightwheel.run(int(moveSpeed + movePidValue))
-                    leftwheel.run(int(moveSpeed - movePidValue))
-
-                    moveLastError = moveError
-                    moveErrorSum += moveError
-
-            if not shellAtSetPoint:
-                currentShellAngle = shell.angle() * SHELL_RATIO
-                
-                if abs(currentShellAngle) >= abs(shellDegrees):
-                    shellAtSetPoint = True
-                    shell.brake()
-                else:
-                    direction = 1 if shellDegrees > 0 else -1
-                    shell.run(shellSpeed * direction)
-
-            wait(10)
-
     def armPID(self, degrees, speed):
-        
         self.errorSum = 0
         self.lastError = 0
         
-        arm.reset_angle(0)
-        
+        # טיימר למצב שהזרוע תקועה
+        stuck_timer = 0
         time_at_setpoint = 0
-        wait(100) # Let the physical mechanism settle before moving
+        
+        wait(100) 
 
         while True:
-
-            current_angle = arm.angle() * 1
+            current_angle = arm.angle()
             error = degrees - current_angle
             
+            # חישוב PID סטנדרטי
             if abs(error) < 15:
                 self.errorSum = max(-50, min(50, self.errorSum + error))
             else:
                 self.errorSum = 0 
 
             pidValue = self.armKp * error + self.armKi * self.errorSum + self.armKd * (error - self.lastError)
-
             arm_power = int(max(-speed, min(speed, pidValue)))
-
-            print("Error:", error, "| Pwr:", arm_power, "| Timer:", time_at_setpoint)
 
             arm.dc(arm_power)
 
-            self.lastError = error
+            # --- מנגנון עצירה אם הזרוע לא זזה ---
+            # בודקים אם השינוי בזווית מזערי (פחות מ-0.5 מעלה)
+            if abs(error - self.lastError) < 0.5:
+                stuck_timer += 20  # מוסיפים את זמן המחזור (20ms)
+            else:
+                stuck_timer = 0    # אם הייתה תנועה, מאפסים את הטיימר
 
+            # אם עברה שנייה וחצי (1500 מילישניות) והזרוע לא זזה
+            if stuck_timer >= 1500:
+                print("Arm stuck for 1.5s - Stopping.")
+                break
+            # ------------------------------------
+
+            # תנאי יציאה רגיל (הגעה ליעד)
             if abs(error) <= self.shellTol: 
                 time_at_setpoint += 20
             else: 
@@ -517,210 +532,7 @@ class Robot:
             if time_at_setpoint >= 100:
                 break
             
+            self.lastError = error
             wait(20)
 
-        arm.brake()
-
-    def arm(self, target_angle):
-        arm.run_target(500, target_angle, wait=False)
-        
-        while not arm.done():
-            current_angle = arm.angle()
-            remaining = target_angle - current_angle
-            
-            print("Current: {}° | Remaining: {}°".format(current_angle, remaining))
-            
-            if current_angle > 100:
-                print("Warning: High angle!")
-                
-            # Short pause to prevent the output window from flickering
-            wait(100) 
-            
-        print("Target reached.")
-
-    # --------------------------------
-    # ------------ TUNING ------------
-    # --------------------------------
-
-    def auto_tune_turn(self, target_degrees=90, speed=50):
-        test_kp = 3
-        ku = 0.0
-        tu = 0.0
-        dt = 0.02
-
-        while True:
-            hub.imu.reset_heading(0)
-            leftwheel.  reset_angle(0)
-            rightwheel.reset_angle(0)
-            wait(200)
-
-            timer = StopWatch()
-            zero_crossings = 0
-            last_error = target_degrees
-            cross_times = []
-
-            # Run the test for exactly 3 seconds
-            while timer.time() < 3000:
-                current_heading = hub.imu.heading()
-                error = target_degrees - current_heading
-
-                # Detect if the robot crosses the target line
-                if (last_error > 0 and error <= 0) or (last_error < 0 and error >= 0):
-                    # Ignore the very first split-second initialization
-                    if timer.time() > 50: 
-                        zero_crossings += 1
-                        cross_times.append(timer.time())
-
-                # Proportional-only control for the test
-                pidValue = test_kp * error
-
-                left_power = int(max(-speed, min(speed, -pidValue)))
-                right_power = int(max(-speed, min(speed, pidValue)))
-
-                leftwheel.dc(left_power)
-                rightwheel.dc(right_power)
-
-                last_error = error
-                wait(20)
-
-            leftwheel.brake()
-            rightwheel.brake()
-
-            print("Tested Kp:", test_kp, "| Crossings:", zero_crossings)
-
-            # 10 crossings indicates sustained oscillation (wobble) without damping
-            if zero_crossings >= 10:
-                ku = test_kp
-                
-                # A full period (Tu) is the time between crossing 1 and crossing 3
-                if len(cross_times) >= 10:
-                    periods = []
-                    for i in range(len(cross_times) - 2):
-                        periods.append(cross_times[i+2] - cross_times[i])
-                        avg_tu_ms = sum(periods) / len(periods)
-                        tu = avg_tu_ms / 1000.0
-                        print("Average Tu calculated from", len(periods), "samples is:",tu)
-                    
-                else:
-                    tu = 0.5 # Failsafe period if array is too small
-
-                break
-
-            else:
-                # If it didn't wobble enough, increase Kp and repeat
-                test_kp += 0.1
-                wait(1000)
-
-        # Ziegler-Nichols Calculation mapped to a static 20ms loop without dt integration
-        final_kp = 0.60 * ku
-        final_ki = (1.20 * ku / tu) * dt
-        final_kd = (0.075 * ku * tu) / dt
-
-        print("--- AUTO-TUNE COMPLETE ---")
-        print("Ultimate Gain (Ku):", ku)
-        print("Ultimate Period (Tu):", round(tu, 3), "sec")
-        print("--------------------------")
-        print("Set self.turnKp =", round(final_kp, 3))
-        print("Set self.turnKi =", round(final_ki, 3))
-        print("Set self.turnKd =", round(final_kd, 3))
-
-        return final_kp, final_ki, final_kd
-    
-    def auto_tune_straight_precision(self, max_distance_cm=60.0, speed=40):
-        test_kp = 0.5
-        dt = 0.01 
-        
-        target_crossings = 12 
-        
-        # Calculation now uses the variable passed into the function
-        max_degrees = (max_distance_cm / CIRCUMFERENCE) * 360
-
-        print("--- STARTING STRAIGHT AUTO-TUNE ---")
-        print("Robot will only drive FORWARD up to", max_distance_cm, "cm.")
-
-        while True:
-            print("\nPlace robot at the START line.")
-            print("Press ANY button on the hub to start run with Kp:", round(test_kp, 2))
-            
-            while not hub.buttons.pressed():
-                wait(10)
-            
-            while hub.buttons.pressed():
-                wait(10)
-            
-            wait(500) 
-
-            hub.imu.reset_heading(0)
-            leftwheel.reset_angle(0)
-            rightwheel.reset_angle(0)
-
-            timer = StopWatch()
-            zero_crossings = 0
-            last_error = 0
-            cross_times = []
-
-            while zero_crossings < target_crossings:
-                
-                abs_position = (abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2
-                
-                # Dynamic boundary check
-                if abs_position >= max_degrees:
-                    print("--> Reached", max_distance_cm, "cm limit! Stopping.")
-                    break 
-                
-                error = 0 - hub.imu.heading()
-
-                if (last_error > 0 and error <= 0) or (last_error < 0 and error >= 0):
-                    if timer.time() > 100:
-                        zero_crossings += 1
-                        cross_times.append(timer.time())
-                        print("Wobble detected! Crossing", zero_crossings, "out of", target_crossings)
-
-                pidValue = test_kp * error
-
-                left_power = int(max(-100, min(100, speed - pidValue)))
-                right_power = int(max(-100, min(100, speed + pidValue)))
-
-                leftwheel.dc(left_power)
-                rightwheel.dc(right_power)
-
-                last_error = error
-                wait(10)
-
-            leftwheel.brake()
-            rightwheel.brake()
-
-            if zero_crossings >= target_crossings:
-                ku = test_kp
-                
-                periods = []
-                for i in range(len(cross_times) - 2):
-                    periods.append(cross_times[i+2] - cross_times[i])
-                
-                avg_tu_ms = sum(periods) / len(periods)
-                tu = avg_tu_ms / 1000.0
-                
-                print("Tested Kp:", round(test_kp, 2), "| Crossings:", zero_crossings)
-                print("Average Tu calculated from", len(periods), "samples is:", round(tu, 3))
-                break 
-                
-            else:
-                print("Kp:", round(test_kp, 2), "failed (Not enough wobbles:",zero_crossings,").")
-                print("Increasing Kp by 0.1 for the next attempt...")
-                test_kp += 0.1 
-
-        final_kp = 0.60 * ku
-        final_ki = (1.20 * ku / tu) * dt
-        final_kd = (0.075 * ku * tu) / dt
-
-        print("\n--- STRAIGHT PRECISION TUNE COMPLETE ---")
-        print("Ultimate Gain (Ku):", round(ku, 2))
-        print("Average Period (Tu):", round(tu, 3), "sec")
-        print("--------------------------")
-        print("Set self.straightKp =", round(final_kp, 3))
-        print("Set self.straightKi =", round(final_ki, 3))
-        print("Set self.straightKd =", round(final_kd, 3))
-        
-        self.straightKp = final_kp
-        self.straightKi = final_ki
-        self.straightKd = final_kd
+        arm.stop() # עצירה מוחלטת לשמירה על המנוע
