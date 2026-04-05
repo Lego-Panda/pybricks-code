@@ -289,32 +289,60 @@ def run7():
 ###
 
 def run8():
-    # rob = Robot(kp=1, ki=0, kd=0.1, turnKp=9, turnKi=0, turnKd=18, shellKp=0, shellKi=0, shellKd=0, shellTol=0, turnTol=10,armKp=4.5, armKi=0, armKd=6.75, armTol=2, turn_wait_time=100)
     rob = Robot(kp=1.8, ki=0, kd=11.493, turnKp=6.12, turnKi=0.604, turnKd=15.491, shellKp=21.6, shellKi=1.399, shellKd=83.362, shellTol=2, turnTol=2,armKp=4.5, armKi=0, armKd=6.75, armTol=2, turn_wait_time=100)
     
     hub.speaker.volume(20)
     hub.speaker.beep(600, 80)
     wait(100)
 
-    rob.pid_distance(10, -40)
-    wait(10)
-    rob.shellTurn(90, 90)
-    wait(200)
-    rob.arc(40, -65, -50)
-    wait(10)
-    rob.pid_distance(20, 60)
-    wait(10)
-    rob.turn(40, 50)
-    wait(10)
-    rob.accelDecel(50, -70)
-    wait(10)
-    rob.turn(-90, 60)
-    wait(10)
-    rob.pid_distance(30, -50)
-    wait(10)
-    arm.run_time(-1000, 400)
+    rob.battery_percent()
+
+    # arm.run_time(1000, 500)
+    # wait(100)
+    # rob.pid_distance(25, -50)
+    # wait(100)
+    # rob.turnWhileShell(90, -50, 100,  50)
+    # wait(100)
+    # rob.pid_distance(48, -70)
+    rob.accelDecel(42, -70)
+    wait(500)
+    rob.pid_distance(50, 100)
+    wait(100)
+    rob.shellTurn(-90, 100)
     
+def run8point5():
+    rob = Robot(kp=1.8, ki=0, kd=11.493, turnKp=6.12, turnKi=0.604, turnKd=15.491, shellKp=21.6, shellKi=1.399, shellKd=83.362, shellTol=2, turnTol=2,armKp=4.5, armKi=0, armKd=6.75, armTol=2, turn_wait_time=100)
     
+    hub.speaker.volume(20)
+    hub.speaker.beep(600, 80)
+    wait(100)
+
+    rob.battery_percent()
+
+    arm.run_time(1000, 500)
+    wait(10)
+    rob.pid_distance(20, -50)
+    wait(10)
+    rob.shellTurn(90)
+    wait(10)
+    arm.run_time(1000, 500)
+    wait(10)
+    rob.pid_distance(20, -50)
+    wait(10)
+    rob.turn(-40, 50)
+    wait(10)
+    rob.pid_distance(36, -50)
+    wait(10)
+    rob.turn(-40, 50)
+    wait(10)
+    rob.pid_distance(10, -50)
+    wait(10)
+    arm.run_time(-1000, 1000)
+    wait(10)
+    rob.accelDecel(70, -60)
+    wait(10)
+    rob.shellTurn(-70)
+
 ###
 
 def test():
@@ -414,7 +442,9 @@ def battery():
 
 # run7()
 
-run8()
+# run8()
+
+run8point5()
 
 # test()
 
