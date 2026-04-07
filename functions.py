@@ -103,6 +103,43 @@ class Robot:
         leftwheel.dc(0)
         rightwheel.dc(0)
 
+    def pid_distance_stuck(self, distance, speed):
+        hub.imu.reset_heading(0)
+        leftwheel.reset_angle(0)
+        rightwheel.reset_angle(0)
+
+        target_spins = distance / CIRCUMFERENCE
+
+        self.errorSum = 0
+        self.lastError = 0
+
+        while True:
+            average_angle = (abs(leftwheel.angle()) + abs(rightwheel.angle())) / 2
+            current_spins = average_angle / 360
+
+            distance_left = target_spins - current_spins
+
+            if distance_left < 0.01:
+                break
+
+            error = -hub.imu.heading()
+
+            self.errorSum = max(-50, min(50, self.errorSum + error))
+            
+            pidValue = (self.kp * error) + (self.ki * self.errorSum) + (self.kd * (error - self.lastError))
+
+            leftwheel.dc(max(-100, min(100, speed - pidValue)))
+            rightwheel.dc(max(-100, min(100, speed + pidValue)))
+
+            if rightwheel.stalled() or leftwheel.stalled():
+                break
+
+            self.lastError = error
+            wait(10)
+
+        leftwheel.dc(0)
+        rightwheel.dc(0)
+
     def accelDecel(self, distance, speed):
         hub.imu.reset_heading(0)
         leftwheel.reset_angle(0)
@@ -229,6 +266,53 @@ class Robot:
 
         leftwheel.brake()
         rightwheel.brake()
+
+    def turn_stuck(self, degrees, speed):
+        hub.imu.reset_heading(0)
+        leftwheel.reset_angle(0)
+        rightwheel.reset_angle(0)
+
+        self.errorSum = 0
+        self.lastError = 0
+
+        time_at_setpoint = 0
+        wait(10)
+
+        while time_at_setpoint < self.turn_wait_time:
+
+            current_heading = hub.imu.heading()
+            error = degrees - current_heading
+            
+            if abs(error) < 15:
+                self.errorSum = max(-50, min(50, self.errorSum + error))
+            else:
+                self.errorSum = 0 
+
+            pidValue = self.turnKp * error + self.turnKi * self.errorSum + self.turnKd * (error - self.lastError)
+
+            left_power = int(max(-speed, min(speed, -pidValue)))
+            right_power = int(max(-speed, min(speed, pidValue)))
+
+            print("Error:", error, "| PID:", pidValue, "| L_PWR:", left_power, "| R_PWR:", right_power)
+
+            leftwheel.dc(left_power)
+            rightwheel.dc(right_power)
+
+            self.lastError = error
+
+            if abs(error) <= self.turnTol: 
+                time_at_setpoint += 20
+            else: 
+                time_at_setpoint = 0
+
+            if rightwheel.stalled() or leftwheel.stalled():
+                break
+            
+            wait(20)
+
+        leftwheel.brake()
+        rightwheel.brake()
+
 
     def turn_one_wheel(self, degrees, speed, active_wheel="left"):
         hub.imu.reset_heading(0)
@@ -481,7 +565,7 @@ class Robot:
         max_v = 8300
 
         percent = (voltage - min_v) / (max_v - min_v) * 100
-        percent = max(0, min(100, percent))  # clamp 0–100
+        percent = max(0, min(100, percent))
 
         print(percent)
 
@@ -489,7 +573,6 @@ class Robot:
         self.errorSum = 0
         self.lastError = 0
         
-        # טיימר למצב שהזרוע תקועה
         stuck_timer = 0
         time_at_setpoint = 0
         
@@ -499,7 +582,6 @@ class Robot:
             current_angle = arm.angle()
             error = degrees - current_angle
             
-            # חישוב PID סטנדרטי
             if abs(error) < 15:
                 self.errorSum = max(-50, min(50, self.errorSum + error))
             else:
@@ -510,20 +592,16 @@ class Robot:
 
             arm.dc(arm_power)
 
-            # --- מנגנון עצירה אם הזרוע לא זזה ---
-            # בודקים אם השינוי בזווית מזערי (פחות מ-0.5 מעלה)
             if abs(error - self.lastError) < 0.5:
-                stuck_timer += 20  # מוסיפים את זמן המחזור (20ms)
+                stuck_timer += 20
             else:
-                stuck_timer = 0    # אם הייתה תנועה, מאפסים את הטיימר
+                stuck_timer = 0 
 
-            # אם עברה שנייה וחצי (1500 מילישניות) והזרוע לא זזה
             if stuck_timer >= 1500:
                 print("Arm stuck for 1.5s - Stopping.")
                 break
             # ------------------------------------
 
-            # תנאי יציאה רגיל (הגעה ליעד)
             if abs(error) <= self.shellTol: 
                 time_at_setpoint += 20
             else: 
@@ -535,4 +613,4 @@ class Robot:
             self.lastError = error
             wait(20)
 
-        arm.stop() # עצירה מוחלטת לשמירה על המנוע
+        arm.stop() 
