@@ -10,25 +10,62 @@ from runs import *
 hub = PrimeHub(Axis.Y, Axis.Z)
 
 hub.display.orientation(Side.BOTTOM)
-selected = hub_menu("H","1", "2", "3", "4", "5", "6", "7", "8", "B")
 
-if selected == "H":
-    leftwheel.run(1000)
-    rightwheel.run(1000)
-    wait(100000000)
-if selected == "1":
-    run1()
-if selected == "2":
-    run2()
-if selected == "3":
-    run3()
-if selected == "4":
-    run4()
-if selected == "5":
-    run5()
-if selected == "6":
-    run6()
-if selected == "7":
-    run7()
-if selected == "8":
-    run8()
+while True:
+    hub.display.char("1")
+    selected = None
+
+    # Polling loop waits for user input
+    while True:
+        pressed = hub.buttons.pressed()
+        hub.system.set_stop_button(None)
+
+        if Button.CENTER in pressed:
+            while hub.buttons.pressed():
+                wait(10)
+            selected = "1"
+            break
+
+        elif Button.LEFT in pressed:
+            while hub.buttons.pressed():
+                wait(10)
+            selected = hub_menu("2", "4", "3")
+            break
+
+        elif Button.RIGHT in pressed:
+            while hub.buttons.pressed():
+                wait(10)
+            selected = hub_menu("5", "6", "7", "8", "9")
+            break
+
+        wait(10)
+
+    # Execution block runs the selected option
+    hub.system.set_stop_button(Button.CENTER)
+    if selected == "1":
+        run1()
+        break
+    elif selected == "2":
+        run2()
+        break
+    elif selected == "3":
+        run3()
+        break
+    elif selected == "4":
+        run4()
+        break
+    elif selected == "5":
+        run5()
+        break
+    elif selected == "6":
+        run6()
+        break
+    elif selected == "7":
+        run7()
+        break
+    elif selected == "8":
+        run8()
+        break
+    elif selected == "9":
+        run8point5()
+        break
