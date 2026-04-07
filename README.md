@@ -10,8 +10,6 @@ Use this code either for inspiration or if you understand every line ;)
 
 ## Installation
 
-downloading our code
-
 ### Windows
 
 _install git_
@@ -78,11 +76,17 @@ _clone the repository_
 ## Documentation
 
 ### Functions:
-- *pid* - Moving straight with PID 
+- *pid* - Moving straight with PID
 - *turn* - Turning with PID 
 - *shellTurn* - Turning the shell with PID (Just 1 motor)
 - *shellWhileTurn* - Turn the shell while the robot is also Turning
 - *moveWhileShell* - Move Straight while the shell is also turning.
+
+### What's PID?
+The PID controller in FLL is used for precise control over the robot. It's made out 3 parameters:
+- **P**, short for **Proportional**, takes the current error; for instance, when moving straight, it applies a steering correction based exactly on how far the robot has drifted.
+- **I**, short for **Integral**, accumulates past errors over time to push the robot back on track if it is constantly drifting (like from an uneven weight balance).
+- **D**, short for **Derivative**, predicts future error by measuring how fast the error is changing, acting as a dampener to prevent overshooting and wobbling.
 
 ### Auto Calibration File:
 - *auto_tune_turn*: auto tune the PID's Kp, Ki and Kd for turning precisely.
