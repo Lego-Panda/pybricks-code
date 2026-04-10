@@ -75,6 +75,8 @@ _clone the repository_
 ```
 ## Documentation
 
+Check out the wiki [here!](https://github.com/Lego-Panda/pybricks-code-2025-2026/wiki)
+
 ### Functions:
 - *pid* - Moving straight with PID
 - *turn* - Turning with PID 
