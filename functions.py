@@ -53,6 +53,10 @@ class Robot:
             self.lastError = error
             wait(10)
 
+            if leftwheel.stalled() or rightwheel.stalled():
+                wait(500)
+                break
+
         leftwheel.brake()
         rightwheel.brake()
 
@@ -593,14 +597,13 @@ class Robot:
             arm.dc(arm_power)
 
             if abs(error - self.lastError) < 0.5:
-                stuck_timer += 20
+                stuck_timer += 20 
             else:
                 stuck_timer = 0 
 
             if stuck_timer >= 1500:
                 print("Arm stuck for 1.5s - Stopping.")
                 break
-            # ------------------------------------
 
             if abs(error) <= self.shellTol: 
                 time_at_setpoint += 20
