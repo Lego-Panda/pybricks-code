@@ -46,7 +46,7 @@ while True:
         run1()
         break
     elif selected == "2":
-        run2()
+        run2point5()
         break
     elif selected == "3":
         run3()
@@ -58,7 +58,8 @@ while True:
         run5()
         break
     elif selected == "6":
-        run6()
+        # run6()
+        run6point5()
         break
     elif selected == "7":
         run7()
