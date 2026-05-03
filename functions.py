@@ -4,10 +4,9 @@ import umath as math
 # ---
 
 class Move:
-    def __init__(self, kp=0.0, ki=0.0, kd=0.0, kp_curve=0.0, ki_curve=0.0, kd_curve=0.0):
+    def __init__(self, kp=0.0, ki=0.0, kd=0.0):
 
         self.kp, self.ki, self.kd = kp, ki, kd
-        self.kp_curve, self.ki_curve, self.kd_curve = kp_curve, ki_curve, kd_curve
         self.errorSum = self.lastError = 0
 
     def move(self, distance, speed, wait_time):
@@ -55,23 +54,24 @@ class Move:
         rightwheel.brake()
         wait(wait_time)
 
-    def move(self, distance, speed, accel_distance=0, decel_distance=0, wait_time=10):
+    def accelDecel(self, distance, speed, accel_distance=50, decel_distance=50, wait_time=10):
         gyro.reset_heading(0)
         leftwheel.reset_angle(0)
         rightwheel.reset_angle(0)
         timer = StopWatch()
 
-        target_deg = (distance / WHEEL_CIRCUMFEFRENCE) * 360
+        target_deg = (abs(distance) / WHEEL_CIRCUMFEFRENCE) * 360
         accel_deg = (accel_distance / WHEEL_CIRCUMFEFRENCE) * 360
         decel_deg = (decel_distance / WHEEL_CIRCUMFEFRENCE) * 360
 
-        min_speed=25
+        direction = 1 if speed > 0 else -1
+        min_speed = 27
         
         self.errorSum = self.lastError = last_time = 0
         wait(100)
 
         current_deg = 0
-        while current_deg < target_deg:
+        while abs(current_deg) < target_deg:
             current_time = timer.time() / 1000.0 
             dt = current_time - last_time
             
@@ -80,21 +80,23 @@ class Move:
                 continue
 
             current_deg = (rightwheel.angle() + leftwheel.angle()) / 2
-            remaining_deg = target_deg - current_deg
+            abs_current = abs(current_deg)
+            remaining_deg = target_deg - abs_current
 
-            current_target_speed = speed
+            temp_speed = abs(speed)
 
-            if current_deg < accel_deg:
-                current_target_speed = min_speed + (speed - min_speed) * (current_deg / accel_deg)
+            if accel_deg > 0 and abs_current < accel_deg:
+                temp_speed = min_speed + (abs(speed) - min_speed) * (abs_current / accel_deg)
             
-            if remaining_deg < decel_deg:
-                decel_speed = min_speed + (speed - min_speed) * (remaining_deg / decel_deg)
-                current_target_speed = min(current_target_speed, decel_speed)
+            if decel_deg > 0 and remaining_deg < decel_deg:
+                decel_speed = min_speed + (abs(speed) - min_speed) * (remaining_deg / decel_deg)
+                temp_speed = min(temp_speed, decel_speed)
 
-            current_target_speed = max(min_speed, current_target_speed)
+            temp_speed = max(min_speed, temp_speed)
+            
+            move_speed = temp_speed * direction
 
             error = -gyro.heading()
-
             if abs(error) < 15:
                 self.errorSum = max(-50, min(50, self.errorSum + error * dt))
             else:
@@ -103,8 +105,8 @@ class Move:
             derivative = (error - self.lastError) / dt
             correction = (self.kp * error) + (self.ki * self.errorSum) + (self.kd * derivative)
 
-            leftwheel.dc(int(max(-100, min(100, current_target_speed - correction))))
-            rightwheel.dc(int(max(-100, min(100, current_target_speed + correction))))
+            leftwheel.dc(int(max(-100, min(100, move_speed - correction))))
+            rightwheel.dc(int(max(-100, min(100, move_speed + correction))))
 
             self.lastError = error
             last_time = current_time
@@ -114,7 +116,7 @@ class Move:
         rightwheel.brake()
         wait(wait_time)
 
-    def curve(self, radius, angle, speed):
+    def curve(self, radius, angle, speed, wait_after):
         gyro.reset_heading(0)
         leftwheel.reset_angle(0)
         rightwheel.reset_angle(0)
@@ -147,7 +149,7 @@ class Move:
             self.errorSum = max(-50, min(50, self.errorSum + (error * dt)))
             derivative = (error - self.lastError) / dt
 
-            correction = (self.kp_curve * error) + (self.ki_curve * self.errorSum) + (self.kd_curve * derivative)
+            correction = (self.kp * error) + (self.ki * self.errorSum) + (self.kd * derivative)
 
             leftwheel.dc(max(-100, min(100, base_v_left - correction)))
             rightwheel.dc(max(-100, min(100, base_v_right + correction)))
@@ -158,6 +160,7 @@ class Move:
 
         leftwheel.brake()
         rightwheel.brake()
+        wait(wait_after)
 
 class Turn:
     def __init__(self, kp=0.0, ki=0.0, kd=0.0, tol=2, wait_time=1):
@@ -683,6 +686,113 @@ class Calibration:
         print("Set self.straightKi =", round(final_ki, 6))
         print("Set self.straightKd =", round(final_kd, 3))
 
+        return final_kp, final_ki, final_kd
+    
+    def auto_tune_shell(self, target_degrees=90):
+        test_kp = 20.0 
+        target_crossings = 10 
+        
+        # SAFETY LIMIT
+        safety_limit_degrees = target_degrees + 60 
+
+        print("--- STARTING SHELL AUTO-TUNE ---")
+        print("WARNING: Ensure the shell has physical room to swing!")
+        print("\n1. Move the shell manually to the ZERO position.")
+        print("2. Press ANY button on the hub to START.")
+        
+        while not hub.buttons.pressed():
+            wait(10)
+        while hub.buttons.pressed():
+            wait(10)
+        wait(500) 
+
+        while True:
+            print("\n--- Testing Kp:", round(test_kp, 2), "---")
+            shell.reset_angle(0)
+            timer = StopWatch()
+            zero_crossings = 0
+            last_time = 0
+            
+            last_error = target_degrees 
+            cross_times = []
+
+            # Run test loop
+            while zero_crossings < target_crossings and timer.time() < 8000:
+                current_time = timer.time() / 1000.0
+                dt = current_time - last_time
+                
+                # Prevent division by zero
+                if dt <= 0:
+                    wait(1)
+                    continue
+                
+                current_angle = shell.angle() * SHELL_RATIO
+                
+                # Safety Abort
+                if current_angle > safety_limit_degrees or current_angle < -30:
+                    print("--> SAFETY ABORT! Shell swung too far.")
+                    break 
+                
+                error = target_degrees - current_angle
+
+                # Zero Crossing detection
+                if (last_error > 0 and error <= 0) or (last_error < 0 and error >= 0):
+                    if timer.time() > 50:
+                        zero_crossings += 1
+                        cross_times.append(current_time)
+                        print("Wobble detected! Crossing", zero_crossings)
+
+                # Proportional-only control
+                power = int(max(-100, min(100, test_kp * error)))
+                shell.dc(power)
+
+                last_error = error
+                last_time = current_time
+                wait(20) # Matching the 20ms wait from your new shellTurn function
+
+            shell.brake()
+
+            if zero_crossings >= target_crossings:
+                ku = test_kp
+                
+                periods = []
+                for i in range(len(cross_times) - 2):
+                    periods.append(cross_times[i+2] - cross_times[i])
+                
+                avg_tu = sum(periods) / len(periods)
+                tu = avg_tu # Already in seconds
+                
+                print("Tested Kp:", round(test_kp, 2), "SUCCESS!")
+                print("Average Tu calculated:", round(tu, 3))
+                break 
+                
+            else:
+                print("Kp:", round(test_kp, 2), "failed (Not enough wobbles).")
+                print("Increasing Kp by 2.0. Next attempt in 3 seconds...")
+                print("--> PLEASE MANUALLY RETURN SHELL TO 0 NOW <--")
+                test_kp += 2.0 
+                wait(3000) 
+
+        # Final Ziegler-Nichols Calculations
+        # Using 0.02 as the nominal dt for the mapping
+        target_dt = 0.02
+        
+        final_kp = 0.60 * ku
+        final_ki = (1.20 * ku / tu) * target_dt
+        final_kd = (0.075 * ku * tu)
+
+        print("\n--- SHELL PRECISION TUNE COMPLETE ---")
+        print("Ultimate Gain (Ku):", round(ku, 2))
+        print("Average Period (Tu):", round(tu, 3), "sec")
+        print("--------------------------")
+        print("Set self.shellKp =", round(final_kp, 3))
+        print("Set self.shellKi =", round(final_ki, 6))
+        print("Set self.shellKd =", round(final_kd, 3))
+        
+        self.shellKp = final_kp
+        self.shellKi = final_ki
+        self.shellKd = final_kd
+        
         return final_kp, final_ki, final_kd
 
 # ---
